@@ -6,10 +6,10 @@
 trigger:
     - main
     
-    pool:
-      vmImage: ubuntu-latest
+    pool
+      vmImage ubuntu-latest
     
-    stages:
+    stages
     - stage: Build
       displayName: Build stage
       jobs:  
