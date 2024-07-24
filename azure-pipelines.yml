@@ -4,27 +4,42 @@
 # https://aka.ms/yaml
 
 trigger:
-    - main
-    
-    pool
-      vmImage ubuntu-latest
-    
-    stages
-    - stage: Build
-      displayName: Build stage
-      jobs:  
-      - job: Build
-        displayName: Build Maven Project
-        steps:
-        - task: Maven@4
-          displayName: 'Maven Package'
-          inputs:
-            mavenPomFile: 'pom.xml'
-        - task: CopyFiles@2
-          displayName: 'Copy Files to artifact staging directory'
-          inputs:
-            SourceFolder: '$(System.DefaultWorkingDirectory)'
-            Contents: '**/target/*.?(war|jar)'
-            TargetFolder: $(Build.ArtifactStagingDirectory)
-        - upload: $(Build.ArtifactStagingDirectory)
-          artifact: drop
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    displayName: Build Maven Project
+    steps:
+    - task: JavaToolInstaller@0
+      inputs:
+        versionSpec: '17'
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
+        jdkDestinationDirectory: '/usr/local/java17'
+
+    - script: |
+        export JAVA_HOME=/usr/local/java17
+        export PATH=$JAVA_HOME/bin:$PATH
+        java -version
+      displayName: 'Set JAVA_HOME and verify Java version'
+
+    - task: Maven@4
+      displayName: 'Maven Package'
+      inputs:
+        mavenPomFile: 'pom.xml'
+
+    - task: CopyFiles@2
+      displayName: 'Copy Files to artifact staging directory'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)'
+        Contents: '*/target/.?(war|jar)'
+        TargetFolder: $(Build.ArtifactStagingDirectory)
+
+    - upload: $(Build.ArtifactStagingDirectory)
+      artifact: drop
